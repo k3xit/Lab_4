@@ -1,4 +1,4 @@
-﻿open System
+open System
 
 type 'T BinaryTree =
     | Node of 'T * 'T BinaryTree * 'T BinaryTree
@@ -22,17 +22,6 @@ let rec buildIntTree (rnd: Random) tree count =
         let newValue = rnd.Next(1, 100)
         let updatedTree = insert tree newValue
         buildIntTree rnd updatedTree (count - 1)
-
-let rec collectEven tree =
-    match tree with
-    | Empty -> []
-    | Node (data, left, right) ->
-        let leftList = collectEven left
-        let rightList = collectEven right
-        if data % 2 = 0 then
-            data :: leftList @ rightList
-        else
-            leftList @ rightList
 
 let rec printSorted tree =
     match tree with
@@ -58,6 +47,24 @@ let rec readNodeCount () =
         printfn "Ошибка ввода. Повторите ввод."
         readNodeCount ()
 
+let rec foldTree f acc Tree = 
+    match Tree with
+    | Empty -> acc
+    | Node (data, left, right) ->
+        let accLeft = foldTree f acc left
+        let accNode = f accLeft (Node(data, left, right))
+        foldTree f accNode right
+
+let collectEven acc node =
+    match node with
+    | Node(data, left, right) ->
+        if data % 2 = 0 then
+            acc @ [data]
+        else
+            acc
+    | _ ->
+        acc
+
 [<EntryPoint>]
 let main args =
     let rnd = Random()
@@ -73,7 +80,7 @@ let main args =
     printfn "Визуализация дерева:"
     printTreeForm "" intTree
 
-    let evenList = collectEven intTree
+    let evenList = foldTree collectEven [] intTree
 
     printfn "\nСписок четных элементов:"
     evenList |> List.iter (printf "%d ")
